@@ -7,6 +7,8 @@ var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var del = require('del');
 
+var browserSync = require('browser-sync').create();
+var reload = browserSync.reload;
 
 var project = ts.createProject('src/tsconfig.json', {typescript: typescript});
 var tsReporter = ts.reporter.defaultReporter;
@@ -27,7 +29,20 @@ gulp.task('bundle', ['html', 'compile'], () => {
        return b.bundle()
            .pipe(source('bundle.js'))
            .pipe(gulp.dest('dist'));
+});
 
+gulp.task('reload:jsx', ['bundle'], done => {reload(); done();});
+
+gulp.task('watch', ['bundle'], () => {
+    gulp.watch('src/**/*{ts,tsx}', ['reload:jsx']);
 });
 
 gulp.task('clean', done => del(['tmp'], done.bind(this)));
+
+
+gulp.task('default', ['watch'], () => {
+    browserSync.init({
+        proxy: 'localhost:3000',
+    });
+
+});
